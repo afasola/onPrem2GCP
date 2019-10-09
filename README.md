@@ -6,15 +6,27 @@ Demo - migration from on premises to GCP
 
 ![Subscriber](img/hl-solution.png)
 
-## Source: https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data
+### Sources:
 
-### Push vs Pull
+- [Cloud Storage as a data lake](https://cloud.google.com/solutions/build-a-data-lake-on-gcp)
+- [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data)
+
+
+### Push vs Pull?
+
+**The pull model** has been selected. The only disadvantage is the slighlty bigger complexity to implement it while the advantages are:
+
+* Impact on the source cluster's CPU and RAM resources is minimized, because the source nodes are used only for serving blocks out of the cluster. You can also fine-tune the specifications of the pull cluster's resources on GCP to handle the copy jobs, and tear down the pull cluster when the migration is complete.
+* Traffic on the source cluster's network is reduced, which allows for higher outbound bandwidths and faster transfers.
+* There is no need to install the Cloud Storage connector on the source cluster as the ephemeral Cloud Dataproc cluster, which already has the connector installed, handles the data transfer to Cloud Storage.
 
 
 
+### Answers to your questions
 
-- Your vision for the data analytics at GCP
-- The GCP target architecture and the GCP technologies you have chosen
+- **Your vision for the data analytics at GCP**
+  * **Answer**: TODO
+- **The GCP target architecture and the GCP technologies you have chosen**
     - Considering the storage technology on GCP and suggest which solution to use for raw and aggregated data and why?
     - Draft a data architecture for storage layer with considering cost and performance aspects
       - Aggregation? Retention? Data classification?
@@ -24,34 +36,34 @@ Demo - migration from on premises to GCP
         - Who access when & which data?
       - How to secure data due to GDPR compliance requirements?
         - Encryption solution? (Encryption on-fly in data stream <-> Encryption on persisted data
-- Specific tasks and processes that benefit from the chosen GCP technologies
-- Migration strategy
+    * **Answer**: TODO
+- **Specific tasks and processes that benefit from the chosen GCP technologies**
+    * **Answer**: TODO
+- **Migration strategy**
   - How to automate data transfer of existing data on Hadoop to GCP?
   - What should be considered for the transit? (secure transit communication, file format?)
-
-- Brief indication of milestones and timelines
-- Any special considerations for rolling out the proposed initiative
-- Criteria by which success will be determined
-- Plans for extending the GCP roadmap to our advantage in the future
-
-
-
-
-
-
+  * **Answer**: TODO
+- **Brief indication of milestones and timelines**
+  * **Answer**: TODO
+- **Any special considerations for rolling out the proposed initiative**
+  * **Answer**: TODO
+- **Criteria by which success will be determined**
+  * **Answer**: TODO
+- **Plans for extending the GCP roadmap to our advantage in the future**
+  * **Answer**: TODO
 
 
 
-Network TO BE
+## Network TO BE
 
 ![Subscriber](img/nw-topology-2be.png)
 
 
-Network Demo
+## Network Demo
 
 ![Subscriber](img/nw-topology-demo.png)
 
-
+*Disclaimer:* for the sake of the demo, a VPC Peering between the two VPC has been implemented. 
 
 1. create source cluster
 2. create local file
