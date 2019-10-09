@@ -2,6 +2,21 @@
 Demo - migration from on premises to GCP
 
 
+High Level solution
+
+![Subscriber](img/hl-solution.png)
+
+Network TO BE
+
+![Subscriber](img/nw-topology-2be.png)
+
+
+Network Demo
+
+![Subscriber](img/nw-topology-demo.png)
+
+
+
 1. create source cluster
 2. create local file
 3. copy data into hadoop with command "hadoop distcp file:///home/andrea_fasola/ciccio.txt /test/ciccio"
