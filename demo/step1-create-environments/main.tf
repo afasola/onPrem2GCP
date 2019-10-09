@@ -13,13 +13,12 @@ provider "google-beta" {
   region  = "europe-west3"
   zone    = "europe-west3-a"
 }
-/*
 
-######### ON PREM ###########
 
-*/
+######### ON PREM ENVIRONMENT ###########
 
-#creates VPC
+
+#On Prem VPC
 resource "google_compute_network" "onprem-vpc" {
   provider                  = "google-beta"
   name                      = "onprem-vpc"
@@ -27,7 +26,7 @@ resource "google_compute_network" "onprem-vpc" {
   auto_create_subnetworks   = false
 }
 
-#creates Hadoop cluster subnetwork
+#Hadoop cluster subnetwork
 resource "google_compute_subnetwork" "onprem-hadoop-cluster-nw" {
   name          = "onprem-hadoop-cluster-nw"
   ip_cidr_range = "10.156.0.0/20"
@@ -35,7 +34,7 @@ resource "google_compute_subnetwork" "onprem-hadoop-cluster-nw" {
   network       = "${google_compute_network.onprem-vpc.self_link}"
 }
 
-#creates allow ssh firewall rule (needed only for the demo only)
+#allow ssh firewall rule (needed only for the demo only)
 resource "google_compute_firewall" "allow-ssh-onprem-hadoop-cluster" {
   name    = "allow-ssh-onprem-hadoop-cluster"
   network = "${google_compute_network.onprem-vpc.name}"
@@ -48,7 +47,7 @@ resource "google_compute_firewall" "allow-ssh-onprem-hadoop-cluster" {
   source_ranges = ["176.198.122.79"]
 }
 
-#creates support bucket
+#support bucket (it contains data to be loaded in the On Prem Hadoop cluster + related import script)
 resource "google_storage_bucket" "support-bucket" {
   name          = "onprem2gcp-onprem-data"
   location      = "EU"
@@ -91,7 +90,7 @@ resource "google_storage_bucket_object" "data-service-y-aggregated" {
   ]
 }
 
-#uploads data import script in the support bucket
+#data import script in the support bucket
 resource "google_storage_bucket_object" "data-import-script" {
   name   = "load.sh"
   source = "./data/load.sh"
@@ -101,7 +100,7 @@ resource "google_storage_bucket_object" "data-import-script" {
   ]
 }
 
-#creates the demo on prem cluster loading sample data
+#On Prem Hadoop cluster + sample data import
 resource "google_dataproc_cluster" "on-prem-cluster" {
     name       = "on-prem-cluster"
     region     = "europe-west3"
@@ -141,14 +140,9 @@ resource "google_dataproc_cluster" "on-prem-cluster" {
 }
 
 
-/*
-
 ######### GCP TARGET ##########
 
-*/
-
-
-#creates VPC
+#GCP VPC
 resource "google_compute_network" "gcp-target-vpc" {
   provider                  = "google-beta"
   name                      = "gcp-target-vpc"
@@ -156,7 +150,7 @@ resource "google_compute_network" "gcp-target-vpc" {
   auto_create_subnetworks   = false
 }
 
-#creates Hadoop cluster subnetwork
+#Ephemeral Hadoop cluster subnetwork
 resource "google_compute_subnetwork" "gcp-target-hadoop-cluster-nw" {
   name          = "gcp-target-hadoop-cluster-nw"
   ip_cidr_range = "10.154.0.0/20"
@@ -164,7 +158,7 @@ resource "google_compute_subnetwork" "gcp-target-hadoop-cluster-nw" {
   network       = "${google_compute_network.gcp-target-vpc.self_link}"
 }
 
-#creates allow ssh firewall rule (needed only for the demo only)
+#DELETEME creates allow ssh firewall rule (needed only for the demo only)
 resource "google_compute_firewall" "allow-ssh-gcp-hadoop-cluster" {
   name    = "allow-ssh-gcp-hadoop-cluster"
   network = "${google_compute_network.gcp-target-vpc.name}"
@@ -177,18 +171,21 @@ resource "google_compute_firewall" "allow-ssh-gcp-hadoop-cluster" {
   source_ranges = ["176.198.122.79"]
 }
 
+#VPC Peering On Prem to GCP
 resource "google_compute_network_peering" "onprem-to-gcp-target-peering" {
   name = "onprem-to-gcp-target-peering"
   network = "${google_compute_network.onprem-vpc.self_link}"
   peer_network = "${google_compute_network.gcp-target-vpc.self_link}"
 }
 
+#VPC Peering GCP to On Prem
 resource "google_compute_network_peering" "gcp-target-to-onprem-peering" {
   name = "gcp-target-to-onprem-peering"
   network = "${google_compute_network.gcp-target-vpc.self_link}"
   peer_network = "${google_compute_network.onprem-vpc.self_link}"
 }
 
+#Allow traffic from On Prem to GCP for data pulling
 resource "google_compute_firewall" "allow-tcp-from-gcp-target" {
   name    = "allow-tcp-from-gcp-target"
   network = "${google_compute_network.onprem-vpc.name}"
@@ -201,6 +198,15 @@ resource "google_compute_firewall" "allow-tcp-from-gcp-target" {
   source_ranges = ["${google_compute_subnetwork.gcp-target-hadoop-cluster-nw.ip_cidr_range}"]
 }
 
+#Local executor that creates workflow and cluster templates for later execution
+resource "null_resource" "import" {
+  provisioner "local-exec" {
+    command = "./data/createWFTandEC.sh"
+  }
+  depends_on = [
+        google_compute_subnetwork.gcp-target-hadoop-cluster-nw,
+  ]
+}
 
 ########### VPN ###########
 
@@ -302,4 +308,3 @@ resource "google_compute_router_peer" "router-gcp-target-peer" {
   advertised_route_priority = 100
   interface                 = "${google_compute_router_interface.router-gcp-target-if1.name}"
 }*/
-

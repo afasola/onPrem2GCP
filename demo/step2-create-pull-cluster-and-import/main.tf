@@ -53,3 +53,12 @@ resource "null_resource" "import" {
         google_storage_bucket_object.job,
   ]
 }
+
+
+resource "null_resource" "delete-template" {
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "gcloud dataproc workflow-templates instantiate pull-cluster-template --region europe-west3"
+  }
+}
+
