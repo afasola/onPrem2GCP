@@ -6,23 +6,13 @@ provider "google" {
   zone    = "europe-west3-a"
 }
 
-provider "google-beta" {
-  credentials = file("../demo-onprem2gcp-serviceAccount.json")
-
-  project = "onprem2gcp"
-  region  = "europe-west3"
-  zone    = "europe-west3-a"
-}
-
-
 ######### ON PREM ENVIRONMENT ###########
 
 
 #On Prem VPC
 resource "google_compute_network" "onprem-vpc" {
-  provider                  = "google-beta"
   name                      = "onprem-vpc"
-  routing_mode              = "GLOBAL"
+  routing_mode              = "REGIONAL"
   auto_create_subnetworks   = false
 }
 
@@ -144,9 +134,8 @@ resource "google_dataproc_cluster" "on-prem-cluster" {
 
 #GCP VPC
 resource "google_compute_network" "gcp-target-vpc" {
-  provider                  = "google-beta"
   name                      = "gcp-target-vpc"
-  routing_mode              = "GLOBAL"
+  routing_mode              = "REGIONAL"
   auto_create_subnetworks   = false
 }
 
@@ -206,6 +195,14 @@ resource "null_resource" "import" {
   depends_on = [
         google_compute_subnetwork.gcp-target-hadoop-cluster-nw,
   ]
+}
+
+#Local executor that destroys workflow and cluster templates
+resource "null_resource" "delete-template" {
+  provisioner "local-exec" {
+    when    = "destroy"
+    command = "gcloud dataproc workflow-templates delete pull-cluster-template --region europe-west3"
+  }
 }
 
 ########### VPN ###########

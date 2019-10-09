@@ -54,11 +54,3 @@ resource "null_resource" "import" {
   ]
 }
 
-
-resource "null_resource" "delete-template" {
-  provisioner "local-exec" {
-    when    = "destroy"
-    command = "gcloud dataproc workflow-templates instantiate pull-cluster-template --region europe-west3"
-  }
-}
-
