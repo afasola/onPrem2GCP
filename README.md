@@ -1,15 +1,22 @@
-# onPrem2GCP
-Demo - migration from on premises to GCP
+# Solution Design Task - Data migration from On Prem to GCP
+This repository contains the proposed high level solution to migrate data from an existing On Premise Hadoop Cluster to a new GCP Analytics platform.
 
 
-# High Level solution
+# High Level Solution
+
+## Key principles
+
+1. **"Lift and shift" data migration** : data is migrated AS IS from the On Prem Hadoop cluster to an equivalent representation in GCS
+2. **Cloud Storage as a data lake** : GCS is well suited to serve as the central storage repository for many reasons (Source: [Cloud Storage as a data lake](https://cloud.google.com/solutions/build-a-data-lake-on-gcp))
+3. **Existing Data is pulled from GCP** : Ephemeral Pull Dataproc Clusters will pull data from the On Prem Hadoop Cluster (Source: [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data))
+4. **Data migration in stages** : Data is migrated on a per Service base. 
+5. **Build new data ingestion pipelines into GCP**: needed for the targert solution and to support the point below. 
+6. **New data for a given Service *should* be ingested in both environments untill Service data migration is fully completed** : this approach ensures Analytics Service continuity.
+
 
 ![Subscriber](img/hl-solution.png)
 
-### Sources:
 
-- [Cloud Storage as a data lake](https://cloud.google.com/solutions/build-a-data-lake-on-gcp)
-- [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data)
 
 
 ### Push vs Pull?
@@ -90,7 +97,7 @@ gcloud dataproc workflow-templates set-managed-cluster pull-cluster-template \
   --project onprem2gcp \
   --initialization-actions 'gs://onprem2gcp-gcp-target-data/import.sh'
 
-gcloud dataproc workflow-templates add-job pyspark gs://onprem2gcp-gcp-target-data/do_nothing.py --step-id empty --workflow-template pull-cluster-template --region europe-west3
+gcloud dataproc workflow-templates add-job pyspark gs://onprem2gcp-gcp-target-data/empty.py --step-id empty --workflow-template pull-cluster-template --region europe-west3
 
 
 gcloud dataproc workflow-templates instantiate pull-cluster-template --region europe-west3

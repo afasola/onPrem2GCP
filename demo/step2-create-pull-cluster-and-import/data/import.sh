@@ -1,2 +1,1 @@
-hadoop distcp hdfs://10.156.0.2/service-x/raw/service-x-raw.json gs://onprem2gcp-migrated-data-service-x/raw/service-x-raw.json 
-hadoop distcp hdfs://10.156.0.2/service-x/aggregated/service-x-aggregated.json gs://onprem2gcp-migrated-data-service-x/aggregated/service-x-aggregated.json
+hadoop distcp hdfs://10.156.0.2/service-x/ gs://onprem2gcp-migrated-data-service-x/
