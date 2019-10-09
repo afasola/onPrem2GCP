@@ -2,9 +2,45 @@
 Demo - migration from on premises to GCP
 
 
-High Level solution
+# High Level solution
 
 ![Subscriber](img/hl-solution.png)
+
+## Source: https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data
+
+### Push vs Pull
+
+
+
+
+- Your vision for the data analytics at GCP
+- The GCP target architecture and the GCP technologies you have chosen
+    - Considering the storage technology on GCP and suggest which solution to use for raw and aggregated data and why?
+    - Draft a data architecture for storage layer with considering cost and performance aspects
+      - Aggregation? Retention? Data classification?
+      - Best practices & recommendation to use data for Analytics?
+    - How do you implement data governance and security on GCP?
+      - Control mechanism of granting access to data
+        - Who access when & which data?
+      - How to secure data due to GDPR compliance requirements?
+        - Encryption solution? (Encryption on-fly in data stream <-> Encryption on persisted data
+- Specific tasks and processes that benefit from the chosen GCP technologies
+- Migration strategy
+  - How to automate data transfer of existing data on Hadoop to GCP?
+  - What should be considered for the transit? (secure transit communication, file format?)
+
+- Brief indication of milestones and timelines
+- Any special considerations for rolling out the proposed initiative
+- Criteria by which success will be determined
+- Plans for extending the GCP roadmap to our advantage in the future
+
+
+
+
+
+
+
+
 
 Network TO BE
 
