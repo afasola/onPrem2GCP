@@ -114,7 +114,7 @@ The idea is that already during the migration, data ingestion happens in both en
 ![Subscriber](img/nw-topology-2be.png)
 
 
-## Network Demo
+## Network Demo
 
 ![Subscriber](img/nw-topology-demo.png)
 
