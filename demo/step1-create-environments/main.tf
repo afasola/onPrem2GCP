@@ -147,19 +147,6 @@ resource "google_compute_subnetwork" "gcp-target-hadoop-cluster-nw" {
   network       = "${google_compute_network.gcp-target-vpc.self_link}"
 }
 
-#DELETEME creates allow ssh firewall rule (needed only for the demo only)
-resource "google_compute_firewall" "allow-ssh-gcp-hadoop-cluster" {
-  name    = "allow-ssh-gcp-hadoop-cluster"
-  network = "${google_compute_network.gcp-target-vpc.name}"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  source_ranges = ["176.198.122.79"]
-}
-
 #VPC Peering On Prem to GCP
 resource "google_compute_network_peering" "onprem-to-gcp-target-peering" {
   name = "onprem-to-gcp-target-peering"

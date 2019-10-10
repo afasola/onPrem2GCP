@@ -60,7 +60,7 @@ once loaded in BigQuery will be represented as
 | value1 | value2 | value3 | nested4 |
 --------------------------------------
 ```
-with a clear increase in space allocation to store the object. Of course the more normiliazed and complex the data is the the higher the space required to repesent and store it in a denormalized form.
+with a clear increase in space allocation to store the object. Of course the more normiliazed and complex the data the higher the space required to repesent and store it in a denormalized form.
 
 1.2PB of data costs ~ 30.000EURO a month to be stored in GCS. The "same amount" in BigQuery costs ~25.000EURO. It's apparently cheaper. However, once the data will be loaded in BigQuery and it will be denormilized, in case of complex data, the required space could multiplied for a factor of 2, or 3, or... and will follow. 
 
@@ -106,6 +106,32 @@ The idea is that already during the migration, data ingestion happens in both en
 
 # High-leve solution (DEMO) overview
 
+This demo project uses Terraform to automate the creation od two environments in GCP, respectively the On Prem environment (source of data) and the new GCP Analytics Platform (target destination). 
+
+## On Prem
+When created it's composed by:
+
+- VPC (Virtual Private Cloud) in the europe-west3 region
+- a subnetwork for the Hadoop Cluster in the europe-west3 region 
+- a VPC Peering with the target environment
+- a firewall rule which allows TCP outgoing traffic to the target cloud
+- a firewall rule which allows SSH to machines in the cluster subnetwork
+- a Hadoop Cluster with one master in the europe-west3 region
+- a regional support bucket containing some sample data to be loaded in the On Prem Hadoop cluster together with a script to load in Hadoop
+
+## GCP target
+When created it's composed by:
+
+- VPC (Virtual Private Cloud) in the europe-west3 region
+- a subnetwork for the Hadoop Cluster in the europe-west3 region 
+- a VPC Peering with the target environment
+- a support bucket contaning import jobs required by the ephemeral pull cluster
+- Dataproc Workflow Template used to generate the ephemeral pull cluster on job submission
+- a GCS bucket where data will be migrated to
+
+
+
+
 ![Subscriber](img/hl-solution.png)
 
 
@@ -119,6 +145,8 @@ The idea is that already during the migration, data ingestion happens in both en
 ![Subscriber](img/nw-topology-demo.png)
 
 *Disclaimer:* for the sake of the demo, a VPC Peering between the two VPC has been implemented. 
+
+
 
 1. create source cluster
 2. create local file
