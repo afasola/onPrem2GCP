@@ -62,7 +62,7 @@ once loaded in BigQuery will be represented as
 ```
 with a clear increase in space allocation to store the object. Of course, the more normalized and complex the data the higher the space required to represent and store it in a denormalized form.
 
-1.2PB of data costs ~ 30.000EURO a month to be stored in GCS. The "same amount" in BigQuery costs ~25.000EURO. It's apparently cheaper. However, once the data will be loaded in BigQuery and it will be denormalized, in case of complex data, the required space could multiply for a factor of 2, or 3, or... and will follow. 
+1.2PB of data costs ~ 30.000EURO a month to be stored in GCS. The "same amount" in BigQuery costs ~25.000EURO. It's apparently cheaper. However, once the data will be loaded in BigQuery and it will be denormalized, in case of complex data, the required space could multiply for a factor of 2, or 3 or even much more. The related cost for storage will follow this trend. 
 
 This does not mean that BigQuery is not a valuable service for storing data. Actually, it provides extremely powerful features that are not possible in GCS and enables access to data in a much simpler way.
 
@@ -146,16 +146,68 @@ When created it's composed by:
 
 *Disclaimer:* for the sake of the demo, a VPC Peering between the two VPC has been implemented. 
 
+## Demo
+
+### Step 1
+This is the preparation of the environments.
+
+From folder "./demo/step1-create-environments" run 
+
+```
+terraform init
+terraform apply
+```
+
+Verify that:
+- on-prem and the target VPC have been created. [Verify](https://console.cloud.google.com/networking/networks/list?project=onprem2gcp)
+- the related subnetrowks exist in their respective VPCs
+- there is peering betweenn the VPCs. [Verify](https://console.cloud.google.com/networking/peering/list?project=onprem2gcp&peeringTablesize=50)
+- there are two firewall rules. One to allo SSH on the Cluster and one to allow traffic from On-Prem to GCP. [Verify](https://console.cloud.google.com/networking/firewalls/list?project=onprem2gcp&firewallTablesize=50)
+- there a Hadoop Cluster in the On-Prem subnetwork. [Verify](https://console.cloud.google.com/dataproc/clusters?project=onprem2gcp)
+- there is a support bucket containig data which have been loaded in the On-Prem Hadoop Cluster. [Verify](https://console.cloud.google.com/storage/browser?project=onprem2gcp)
+- verity that data is in Hadoop as described below
+
+Connect to the Hadoop Cluster machine in ssh:
+
+```
+gcloud beta compute --project "onprem2gcp" ssh --zone "europe-west3-b" "on-prem-cluster-m" 
+```
+
+Once connected, run a few Hadoop commands. Eg:
+
+```
+hadoop fs -ls hdfs://on-prem-cluster-m/service-x/ 
+
+or 
+
+hadoop fs -cat hdfs://on-prem-cluster-m/service-x/raw/service-x-raw.json
+```
+
+We are now ready to import the data!
+
+### Step 2
+
+From folder "./demo/step2-create-pull-cluster-and-import" run 
+
+```
+terraform init
+terraform apply
+```
 
 
-1. create source cluster
-2. create local file
-3. copy data into hadoop with command "hadoop distcp file:///home/andrea_fasola/ciccio.txt /test/ciccio"
-4. show the file has been loaded with command "hadoop fs -cat /test/ciccio"
+Verify that:
+
+- there is a new bucket where data will be imported and it's empty. [Verify](https://console.cloud.google.com/storage/browser?project=onprem2gcp)
+- there is a new Workflow Template. [Verify](https://console.cloud.google.com/dataproc/workflows/templates?project=onprem2gcp)
+- a new ephemeral pull Hadoop Cluster is being created. [Verify](https://console.cloud.google.com/dataproc/clusters?project=onprem2gcp)
+- there is a new Workflow Instance being executed. [Verify](https://console.cloud.google.com/dataproc/workflows/instances?project=onprem2gcp)
+
+Once the job is completed, verify that:
+
+- the ephemeral pull cluster has been deleted. [Verify](https://console.cloud.google.com/dataproc/clusters?project=onprem2gcp)
+- data has been imported in the target bucket. [Verify](https://console.cloud.google.com/storage/browser/onprem2gcp-migrated-data-service-x?project=onprem2gcp)
 
 
-connect to the onPrem Hadoop Cluster: gcloud beta compute --project "onprem2gcp" ssh --zone "europe-west3-b" "on-prem-cluster-m" 
-connect to the Pull Hadoop Cluster: gcloud beta compute --project "onprem2gcp" ssh --zone "europe-west3-b" "gcp-pull-cluster-m"
 
 authorise the usage of the key
 gsutil kms authorize -p onprem2gcp -k projects/onprem2gcp/locations/europe-west3/keyRings/gcp-target-key-ring-3/cryptoKeys/service-x-crypto-key
@@ -169,7 +221,7 @@ topology https://cloud.google.com/vpn/docs/concepts/topologies#2-gcp-gateways
 
 
 
-### Answers to your questions
+# Answers to your questions
 
 - **Your vision for the data analytics at GCP**
   * **Answer**: TODO
