@@ -187,24 +187,6 @@ resource "google_compute_firewall" "allow-tcp-from-gcp-target" {
   source_ranges = ["${google_compute_subnetwork.gcp-target-hadoop-cluster-nw.ip_cidr_range}"]
 }
 
-#Local executor that creates workflow and cluster templates for later execution
-resource "null_resource" "import" {
-  provisioner "local-exec" {
-    command = "./data/createWFTandEC.sh"
-  }
-  depends_on = [
-        google_compute_subnetwork.gcp-target-hadoop-cluster-nw,
-  ]
-}
-
-#Local executor that destroys workflow and cluster templates
-resource "null_resource" "delete-template" {
-  provisioner "local-exec" {
-    when    = "destroy"
-    command = "gcloud dataproc workflow-templates delete pull-cluster-template --region europe-west3"
-  }
-}
-
 ########### VPN ###########
 
 /*resource "google_compute_ha_vpn_gateway" "ha-gateway-onprem" {

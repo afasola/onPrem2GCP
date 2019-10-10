@@ -6,12 +6,33 @@ This repository contains the proposed high level solution to migrate data from a
 
 ## Key principles
 
-1. **"Lift and shift" data migration** : data is migrated AS IS from the On Prem Hadoop cluster to an equivalent representation in GCS
-2. **Cloud Storage as a data lake** : GCS is well suited to serve as the central storage repository for many reasons (Source: [Cloud Storage as a data lake](https://cloud.google.com/solutions/build-a-data-lake-on-gcp))
-3. **Existing Data is pulled from GCP** : Ephemeral Pull Dataproc Clusters will pull data from the On Prem Hadoop Cluster (Source: [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data))
-4. **Data migration in stages** : Data is migrated on a per Service base. 
-5. **Build new data ingestion pipelines into GCP**: needed for the targert solution and to support the point below. 
-6. **New data for a given Service *should* be ingested in both environments untill Service data migration is fully completed** : this approach ensures Analytics Service continuity.
+1. **"Lift and shift" data migration**
+2. **Cloud Storage as a data lake**
+3. **Data is pulled from On Prem by GCP**
+4. **Data migration per Service and in stages** 
+5. **Build new data ingestion pipelines into GCP**
+6. **Ad interim data ingestion**
+
+### "Lift and shift" data migration
+Data is migrated AS IS from the On Prem Hadoop cluster to an equivalent representation in GCS (Google Cloud Storage)
+
+### Cloud Storage as a data lake
+ : GCS is well suited to serve as the central storage repository for many reasons (Source: [Cloud Storage as a data lake](https://cloud.google.com/solutions/build-a-data-lake-on-gcp))
+   - *Disclaimer: BigQuery is a service well suited for storing data. For example, raw data could be stored in BigQuery. However, there shall be a consideration made around the data itself: BigQuery stores data in a denormalized form, meaning that if one raw data is normalized and gets loaded in BigQuery, BigQuery will create as many table raws as required to fully represent the original data. (Eg: {field1=1, field2={nested1=1, nested2=2}} will become )*
+  
+### Data is pulled from On Prem by GCP 
+Ephemeral Pull Dataproc Clusters will pull data from the On Prem Hadoop Cluster (Source: [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data))
+
+### Data migration per Service and in stages
+Data is migrated on a per Service base.
+
+### Build new data ingestion pipelines into GCP
+Needed for the targert solution and to support the point below. 
+
+### Ad interim data ingestion
+This approach ensures Analytics Service continuity.
+
+
 
 
 ![Subscriber](img/hl-solution.png)
@@ -97,12 +118,16 @@ gcloud dataproc workflow-templates set-managed-cluster pull-cluster-template \
   --project onprem2gcp \
   --initialization-actions 'gs://onprem2gcp-gcp-target-data/import.sh'
 
-gcloud dataproc workflow-templates add-job pyspark gs://onprem2gcp-gcp-target-data/empty.py --step-id empty --workflow-template pull-cluster-template --region europe-west3
+gcloud dataproc workflow-templates add-job pyspark gs://onprem2gcp-gcp-target-data/empty.py --step-id empty --workflow-template pull-cluster-template --region europe-west3 && gcloud dataproc workflow-templates instantiate pull-cluster-template --region europe-west3
 
 
 gcloud dataproc workflow-templates instantiate pull-cluster-template --region europe-west3
 
 gcloud dataproc workflow-templates delete pull-cluster-template --region europe-west3
 
+authorise the usage of the key
+gsutil kms authorize -p onprem2gcp -k projects/onprem2gcp/locations/europe-west3/keyRings/gcp-target-key-ring-3/cryptoKeys/service-x-crypto-key
+
 
 topology https://cloud.google.com/vpn/docs/concepts/topologies#2-gcp-gateways
+
