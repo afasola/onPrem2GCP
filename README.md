@@ -148,6 +148,17 @@ When created it's composed by:
 
 ## Demo
 
+### Preconditions
+
+- Terraform is installed
+- there is an active service account with privilegies to create and destroy resources
+- the related service account key is dowloaded and copied the ./demo folder
+- the Cloud Store service account is authorised to use the provided encryption key (in this case the service-x-crypto-key in the gcp-target-key-ring-3 key ring)
+
+```
+gsutil kms authorize -p onprem2gcp -k projects/onprem2gcp/locations/europe-west3/keyRings/gcp-target-key-ring-3/cryptoKeys/service-x-crypto-key
+```
+
 ### Step 1
 This is the preparation of the environments.
 
@@ -206,17 +217,6 @@ Once the job is completed, verify that:
 
 - the ephemeral pull cluster has been deleted. [Verify](https://console.cloud.google.com/dataproc/clusters?project=onprem2gcp)
 - data has been imported in the target bucket. [Verify](https://console.cloud.google.com/storage/browser/onprem2gcp-migrated-data-service-x?project=onprem2gcp)
-
-
-
-authorise the usage of the key
-gsutil kms authorize -p onprem2gcp -k projects/onprem2gcp/locations/europe-west3/keyRings/gcp-target-key-ring-3/cryptoKeys/service-x-crypto-key
-
-
-topology https://cloud.google.com/vpn/docs/concepts/topologies#2-gcp-gateways
-
-
-
 
 
 
