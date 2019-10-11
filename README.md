@@ -231,7 +231,7 @@ Once the job is completed, verify that:
       - Aggregation? Retention? Data classification?
       - Best practices & recommendation to use data for Analytics?
     
-        **Answer**: At the beginning the storage layer is in Cloud Store and it's a replica of what exists in the Hadoop cluster on-prem. The Objects Lifecycle Management features offered by Cloud Storage allows setting rules for automatic storage class downgrade (eg: Standard Storage to Coldine Storage) or deletion after a certain period of time. Retention and cost optimizations are automated and ensured thanks to this feature there should no longer be the need to have dedicated jobs or processes for backup. Sensible data objects can be protected with additional ACL on top of the predefined bucket policies.
+      **Answer**: At the beginning the storage layer is in Cloud Store and it's a replica of what exists in the Hadoop cluster on-prem. The Objects Lifecycle Management features offered by Cloud Storage allows setting rules for automatic storage class downgrade (eg: Standard Storage to Coldine Storage) or deletion after a certain period of time. Retention and cost optimizations are automated and ensured thanks to this feature there should no longer be the need to have dedicated jobs or processes for backup. Sensible data objects can be protected with additional ACL on top of the predefined bucket policies.
     - How do you implement data governance and security on GCP?
       - Control mechanism of granting access to data
         - Who access when & which data?
