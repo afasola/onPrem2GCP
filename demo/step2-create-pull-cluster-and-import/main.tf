@@ -20,9 +20,9 @@ resource "google_storage_bucket" "service-x-bucket" {
     service = "service-x"
   }
 
-  provisioner "local-exec" {
+  /*provisioner "local-exec" {
     command = "echo hadoop distcp hdfs://10.156.0.2/service-x/ gs://onprem2gcp-migrated-data-service-x/ > ./data/import.sh"
-  }
+  }*/
 }
 
 #creates support bucket

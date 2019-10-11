@@ -8,7 +8,7 @@ This repository contains the proposed high-level solution to migrate data from a
 
 1. **"Lift and shift" data migration**
 2. **Cloud Storage as a data lake**
-3. **Data is pulled from On-Prem by an ephemeral cluster in GCP**
+3. **Data is pulled from On-Prem by ephemeral clusters in GCP**
 4. **Data migration per Service and in stages** 
 5. **Build new data ingestion pipelines into GCP**
 6. **Ad interim new data ingestion**
@@ -70,7 +70,7 @@ My final consideration is: BigQuery can be used as well, as long as it's clear t
 
 Having the data migrated from On-Prem to GCS enables us to explore this option later.
   
-### 3. Data is pulled from On-Prem by an ephemeral cluster in GCP
+### 3. Data is pulled from On-Prem by ephemeral clusters in GCP
 Ephemeral Pull Dataproc Clusters will pull data from the OnPrem Hadoop Cluster (Source: [Migrating HDFS Data from On-Premises to Google Cloud Platform](https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data))
 
 The official documentation describes and explains two approaches to copy data from HDFS to GCP (GCS): push model vs pull model. Both based on the usage of the DistCp command provided by Hadoop. The slightly bigger complexity to implement the pull model is paid back with a lot of advantages: 
@@ -106,7 +106,7 @@ The idea is that already during the migration, data ingestion happens in both en
 
 # High-level solution (DEMO) overview
 
-This demo project uses Terraform to automate the creation od two environments in GCP, respectively the On-Prem environment (source of data) and the new GCP Analytics Platform (target destination). 
+This demo project uses Terraform to automate the creation of two environments in GCP, respectively the On-Prem environment (playing the role of the On-Prem environment) and the new GCP Analytics Platform which is the place where data needs to be migrated. 
 
 ## On-Prem environment
 When created it's composed by:
@@ -129,37 +129,35 @@ When created it's composed by:
 - Dataproc Workflow Template used to generate the ephemeral pull cluster on job submission
 - a GCS bucket where data will be migrated to
 
-
-
-
+## High-level diagram
 ![Subscriber](img/hl-solution.png)
 
 
-## Network TO BE
+## Network TO-BE
 
 ![Subscriber](img/nw-topology-2be.png)
 
 
-## Network Demo
+## Network topology for the Demo
 
 ![Subscriber](img/nw-topology-demo.png)
 
 *Disclaimer:* for the sake of the demo, a VPC Peering between the two VPC has been implemented. 
 
-## Demo
+# Demo
 
-### Preconditions
+## Preconditions
 
 - Terraform is installed
 - there is an active service account with privilegies to create and destroy resources
-- the related service account key is dowloaded and copied the ./demo folder
+- the related service account key is dowloaded and copied to the ./demo folder
 - the Cloud Store service account is authorised to use the provided encryption key (in this case the service-x-crypto-key in the gcp-target-key-ring-3 key ring)
 
 ```
 gsutil kms authorize -p onprem2gcp -k projects/onprem2gcp/locations/europe-west3/keyRings/gcp-target-key-ring-3/cryptoKeys/service-x-crypto-key
 ```
 
-### Step 1
+## Step 1
 This is the preparation of the environments.
 
 From folder "./demo/step1-create-environments" run 
@@ -196,7 +194,7 @@ hadoop fs -cat hdfs://on-prem-cluster-m/service-x/raw/service-x-raw.json
 
 We are now ready to import the data!
 
-### Step 2
+## Step 2
 
 From folder "./demo/step2-create-pull-cluster-and-import" run 
 
@@ -220,35 +218,45 @@ Once the job is completed, verify that:
 
 
 
-
 # Answers to your questions
 
 - **Your vision for the data analytics at GCP**
-  * **Answer**: TODO
+  * **Answer**: Google is the best-in-class when it comes to data and its management. They sell to customers what's used internally for their proprietary services. The expectation is to have (almost) the same tools available to them to try and get the most values out of our data. Also, moving to GCP shall translate in spending less time handling the infrastructure while moving towards managed services. This means a reduction of operational costs. As mentioned above, a paradigm shift is required which will allow a refactoring of internall processes, tool and technologies. My biggest expectation, even if I am not an expert (yet), is that moving to GPC will build a strong foundation for a concrete introduction of AI and ML that could be more easily offered as a service to our customers. 
 - **The GCP target architecture and the GCP technologies you have chosen**
     - Considering the storage technology on GCP and suggest which solution to use for raw and aggregated data and why?
+    *** **Answer**: I have choosen Cloud Storage as first place to migrate data to. Reasons are explained in details in the second key principle. However, BigQuery has, to me, a big potential to be the central place where raw data is stored. The main reason is that it offers a very simple SQL like interface to accessing data that can be made available to our customer and allow them to create values from their data. This can completely replace legacy tool like Datameer and avoid those licenses cost while adding features which are not available yet in our existing Analytics platform like real-time analytics.
     - Draft a data architecture for storage layer with considering cost and performance aspects
       - Aggregation? Retention? Data classification?
       - Best practices & recommendation to use data for Analytics?
+    * **Answer**: TODO The Objects Lifecycle Management features offered by Cloud Storage allows setting rules for automatic storage class downgrade (eg: Standard Storage to Coldine Storage) or deletion after a certain period of time. Retention and cost optimizations are automated thanks to this feature. Sensible data objects can be protected with additional ACL on top of the "standard" bucket policy.
     - How do you implement data governance and security on GCP?
       - Control mechanism of granting access to data
         - Who access when & which data?
       - How to secure data due to GDPR compliance requirements?
         - Encryption solution? (Encryption on-fly in data stream <-> Encryption on persisted data
-    * **Answer**: TODO
+    * **Answer**: The basic mechanism to providing access to GCP resource is through the IAM service which allow defining members (users, groups or service accounts), roles (owner, editor, viewer, custom roles) and permissions (bigtable.instances.create, storage.buckets.list, bigquery.jobs.get, ...) hence, who can do what. In big organizations, where the number of entities (people, their functions and resources) is big, handling this aspect using IAM primitives could be extremely complex and error prone. It's possibly convenient to explore the option of adopting a Data Governance Tool on top of the "raw data" which could also provide additional value on the data itself. With reagrds to Secutiry instead, the usual best practices shall always be applied: data in transit between componets in the cloud shall be encrypted (HTTPS or mutual-TLS), connections over the Internet shall be secured inside VPN tunnels where data is additionally encrypted on top of the encryption provided by the protocol. Data at rest shall be encrypted and GCP provides several options for this problem from Google managed keys, to customer managed key to customer supplied encryption keys. The correct option should be choosen as a trade-off between the sensibility of the data and the management effort that it's required (eg: in case of not Google managed key). 
 - **Specific tasks and processes that benefit from the chosen GCP technologies**
-    * **Answer**: TODO
+    * **Answer**: GCP itself enables a much faster experimentation and adoption of new technologies and techniques. Object Lifecycle Management (GCS) enables automatic backup and deletion of data. Ephemeral Cluster (Dataproc) simplifies and optimizes the maintenance and the execution of jobs. BigQuery enables a simplified access to raw data and allows real time analytics. 
 - **Migration strategy**
   - How to automate data transfer of existing data on Hadoop to GCP?
   - What should be considered for the transit? (secure transit communication, file format?)
-  * **Answer**: TODO
+  * **Answer**: The solution proposed in this demo is one possible way of migrating data. It's actually the one suggested by Google for moving data between an on-prem Haddop cluster to GCP. [Another option](https://cloud.google.com/solutions/transferring-big-data-sets-to-gcp) could be a push model where data, with job executing in the on-prem environment, is first extracted from the Hadoop cluster, compressed and sent to the correct GCS bucket using the **gsutil**. There are implication that need to be taken into account in this scenario, eg: how much time and resources are needed to extract the data? What's the compression factor? Once received in GCP, data should be decompressed, what component does that? Does the overall process reduce the time to transfer data? These questions can be answered only with an experimental approach at scale, which have not been possible in this moment. 
 - **Brief indication of milestones and timelines**
-  * **Answer**: TODO
+  * **Answer**: 
+  
+    **Timelines** With the setup of this demo (clusters with a master node only, machine type n1-standard4), copying one file of 1GB takes ~35 seconds. One to one, this translates in 486 days to transfer 1.2PB. In this scenario the network latency is possibly negligible because there is a VPC Peering (hence, Google internal network) between the two environment. Many optimizations can be done: the dedicated resources on the cluster can be increased, the distcp command can also be optimised so to assign more memory to the mappers and the reducers. A fair expectation is that this performance can be improved by a factor 2 however the network latency is not known and that could become a bottle neck.
+    It's worth to mention that, in the setup of this demo, copying the same file with gsutil takes ~20 seconds (faster apparently) but it should be measured and added on top of this value also the time required to extract this file from Hadoop, compress it, decompress it on the destination (and possibly also copy the decompressed data in the right bucket).  
+
+    **Milestones**. I would imagine the followings:
+    -   High-level design completion: this document should answer the question on which one is the right approach to transfer this amount of data and how to do it in practice. It should also cover the implementation of the new ingestion pipelines directly into GCP
+    -   Technical readiness: the target environment is ready and all the tools and the process are available and automated
+    -   Migration of the first service: while reaching this milestone we should collect data, learnings, improve the process (if possible) and rebase the success criteria
+    -   Migration of the next X services by Y date: based on the new success criteria
+    -   Full data migration completed: when all the services data are migrated and the new pipelines are ingesting data directly in GCP
+    -   Start of architectural refactoring
 - **Any special considerations for rolling out the proposed initiative**
   * **Answer**: TODO
 - **Criteria by which success will be determined**
-  * **Answer**: TODO
+  * **Answer**: TODO What determines the success of an initiative is normally the comparison of the actual results vs the predifined goals. The question becomes than, what are the goals? Quality, cost and time are the criteria that need to be set, monitored and reached. To me an acceptable result would be to maintain the same values as the current ones without any impact on the quality of the service.  
 - **Plans for extending the GCP roadmap to our advantage in the future**
   * **Answer**: TODO
-
-
